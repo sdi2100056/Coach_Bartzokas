@@ -1,0 +1,22 @@
+/* ── dashboard.css — revenue card, stats grid ── */
+
+.revenue-card {
+  background: linear-gradient(135deg, rgba(0,201,138,0.12), rgba(0,153,255,0.08));
+  border: 1px solid rgba(0,201,138,0.2);
+  border-radius: var(--radius);
+  padding: 24px;
+  margin-bottom: 16px;
+}
+.rev-label { font-size: 12px; margin-bottom: 6px; font-family: 'Syne', sans-serif; }
+.rev-val   { font-family: 'Syne', sans-serif; font-size: 40px; font-weight: 800; color: var(--accent); }
+.rev-sub   { font-size: 13px; margin-top: 4px; }
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin: 0 20px 20px;
+}
+.stat-card  { border-radius: var(--radius); padding: 16px; }
+.stat-val   { font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 800; color: var(--accent); }
+.stat-label { font-size: 12px; margin-top: 2px; }
