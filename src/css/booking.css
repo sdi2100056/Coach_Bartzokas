@@ -1,0 +1,106 @@
+/* ── booking.css — booking form, price summary, booking cards, success, buttons ── */
+
+/* ── Booking form sections ── */
+.book-section {
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 16px;
+}
+.book-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.book-row   { display: flex; gap: 10px; margin-bottom: 10px; }
+.book-field { flex: 1; border-radius: var(--radius-sm); padding: 12px; }
+.book-field label {
+  font-size: 10px;
+  font-family: 'Syne', sans-serif;
+  font-weight: 600;
+  letter-spacing: .5px;
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 4px;
+}
+.book-field input,
+.book-field select {
+  background: transparent;
+  border: none;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  width: 100%;
+  outline: none;
+}
+
+/* ── Price summary ── */
+.price-summary { border-radius: var(--radius-sm); padding: 14px; }
+.price-row     { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px; }
+.price-row.total {
+  font-weight: 700;
+  font-family: 'Syne', sans-serif;
+  font-size: 15px;
+  border-top-width: 1px;
+  border-top-style: solid;
+  padding-top: 8px;
+  margin-top: 8px;
+}
+
+/* ── Buttons ── */
+.btn {
+  width: 100%;
+  padding: 16px;
+  border-radius: var(--radius);
+  border: none;
+  font-family: 'Syne', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all .2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.btn-primary       { background: var(--accent); color: #fff; }
+.btn-primary:hover { filter: brightness(1.1); transform: translateY(-1px); }
+
+/* ── Booking history cards ── */
+.booking-card { border-radius: var(--radius); padding: 16px; margin-bottom: 10px; }
+.booking-top  { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+.booking-title{ font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; }
+.booking-amount{ font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; color: var(--accent); }
+
+.badge         { padding: 4px 10px; border-radius: 50px; font-size: 11px; font-family: 'Syne', sans-serif; font-weight: 700; }
+.badge-active  { background: rgba(0,201,138,0.15); color: var(--accent); }
+.badge-upcoming{ background: rgba(0,153,255,0.15); color: var(--accent2); }
+.badge-done    { color: #888; }
+
+/* ── Success screen ── */
+.success-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 30px;
+  text-align: center;
+  min-height: 60vh;
+}
+.success-icon {
+  width: 80px; height: 80px;
+  border-radius: 50%;
+  background: rgba(0,201,138,0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 24px;
+  border: 2px solid var(--accent);
+}
+.success-title { font-family: 'Syne', sans-serif; font-size: 24px; font-weight: 800; margin-bottom: 8px; }
+.success-sub   { font-size: 15px; line-height: 1.6; margin-bottom: 32px; }
+.success-code  { border-radius: var(--radius); padding: 20px; width: 100%; margin-bottom: 24px; }
+.code-label    { font-size: 11px; margin-bottom: 4px; font-family: 'Syne', sans-serif; }
+.code-val      { font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 800; letter-spacing: 4px; color: var(--accent); }
