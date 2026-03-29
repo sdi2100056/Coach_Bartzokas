@@ -1,0 +1,42 @@
+/* ── base.css — reset, CSS variables, global fonts ── */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --accent:    #00c98a;
+  --accent2:   #0099ff;
+  --accent3:   #ff6b35;
+  --radius:    16px;
+  --radius-sm: 10px;
+}
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+  transition: background .3s, color .3s;
+}
+
+.app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  width: 100%;
+  transition: background .3s;
+}
+
+.page-wrapper {
+  width: 100%;
+}
+
+.pb-nav {
+  padding-bottom: 80px;
+}
+
+@media (min-width: 768px) {
+  .pb-nav { padding-bottom: 20px; }
+}
