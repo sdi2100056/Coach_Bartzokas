@@ -1,28 +1,34 @@
 // ── components/SupportModal.js ──
 import { useState } from "react";
 import Icon from "./Icon";
+import { t } from "../i18n";
 
-function SupportModal({ onClose, prefillName, prefillEmail }) {
-  const [step, setStep]         = useState("form"); // "form" | "success"
+function SupportModal({ onClose, prefillName, prefillEmail, lang = "el" }) {
+  const [step,     setStep]     = useState("form"); // "form" | "success"
   const [category, setCategory] = useState("");
-  const [name, setName]         = useState(prefillName || "");
-  const [email, setEmail]       = useState(prefillEmail || "");
-  const [subject, setSubject]   = useState("");
-  const [message, setMessage]   = useState("");
-  const [errors, setErrors]     = useState({});
+  const [name,     setName]     = useState(prefillName  || "");
+  const [email,    setEmail]    = useState(prefillEmail || "");
+  const [subject,  setSubject]  = useState("");
+  const [message,  setMessage]  = useState("");
+  const [errors,   setErrors]   = useState({});
 
-  const categories = ["Κράτηση", "Πληρωμή", "Τεχνικό", "Άλλο"];
+  const categories = [
+    t(lang, "cat_booking"),
+    t(lang, "cat_payment"),
+    t(lang, "cat_tech"),
+    t(lang, "cat_other"),
+  ];
 
   const validateEmail = (val) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val);
 
   const validate = () => {
     const e = {};
-    if (!name.trim())          e.name     = "Απαιτείται όνομα";
-    if (!email.trim())         e.email    = "Απαιτείται email";
-    else if (!validateEmail(email)) e.email = "Το email πρέπει να περιέχει @";
-    if (!category)             e.category = "Επίλεξε κατηγορία";
-    if (!subject.trim())       e.subject  = "Απαιτείται θέμα";
-    if (!message.trim())       e.message  = "Γράψε το πρόβλημά σου";
+    if (!name.trim())            e.name     = t(lang, "err_name");
+    if (!email.trim())           e.email    = t(lang, "err_email_req");
+    else if (!validateEmail(email)) e.email = t(lang, "err_email_fmt");
+    if (!category)               e.category = t(lang, "err_category");
+    if (!subject.trim())         e.subject  = t(lang, "err_subject");
+    if (!message.trim())         e.message  = t(lang, "err_message");
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -32,37 +38,55 @@ function SupportModal({ onClose, prefillName, prefillEmail }) {
   const ticketId = "SP-" + Math.floor(10000 + Math.random() * 90000);
 
   return (
-    <div className="modal-backdrop" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+    <div
+      className="modal-backdrop"
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+    >
       <div className="modal-sheet">
         <div className="modal-handle" />
 
         {step === "success" ? (
+          /* ── Success screen ── */
           <div className="support-success">
-            <div className="support-success-icon"><Icon name="check" size={28} /></div>
-            <div className="support-success-title">Το αίτημά σου στάλθηκε! 🎉</div>
+            <div className="support-success-icon">
+              <Icon name="check" size={28} />
+            </div>
+            <div className="support-success-title">{t(lang, "sent_title")}</div>
             <div className="support-success-sub">
-              Η ομάδα υποστήριξής μας θα επικοινωνήσει μαζί σου στο <strong>{email}</strong> εντός 24 ωρών.
+              {t(lang, "sent_body")} <strong>{email}</strong> {t(lang, "sent_body2")}
             </div>
             <div className="ticket-badge">#{ticketId}</div>
-            <button className="btn btn-primary" style={{ marginTop: 24 }} onClick={onClose}>Κλείσιμο</button>
+            <button
+              className="btn btn-primary"
+              style={{ marginTop: 24 }}
+              onClick={onClose}
+            >
+              {t(lang, "btn_close")}
+            </button>
           </div>
+
         ) : (
+          /* ── Form ── */
           <>
             <div className="modal-header">
-              <div className="modal-icon"><Icon name="headset" size={22} /></div>
-              <div>
-                <div className="modal-title">Υποστήριξη 24/7</div>
-                <div className="modal-subtitle">Συμπλήρωσε τα στοιχεία σου και θα σε βοηθήσουμε άμεσα</div>
+              <div className="modal-icon">
+                <Icon name="headset" size={22} />
               </div>
-              <button className="modal-close" onClick={onClose}><Icon name="close" size={16} /></button>
+              <div>
+                <div className="modal-title">{t(lang, "support_title")}</div>
+                <div className="modal-subtitle">{t(lang, "support_subtitle")}</div>
+              </div>
+              <button className="modal-close" onClick={onClose}>
+                <Icon name="close" size={16} />
+              </button>
             </div>
 
             {/* Name */}
             <div className="support-field">
-              <label className="support-label">Ονοματεπώνυμο *</label>
+              <label className="support-label">{t(lang, "field_name")}</label>
               <input
                 className={`support-input${errors.name ? " error" : ""}`}
-                placeholder="Το όνομά σου"
+                placeholder={t(lang, "field_name_ph")}
                 value={name}
                 onChange={e => { setName(e.target.value); setErrors(p => ({ ...p, name: "" })); }}
               />
@@ -71,10 +95,10 @@ function SupportModal({ onClose, prefillName, prefillEmail }) {
 
             {/* Email */}
             <div className="support-field">
-              <label className="support-label">Email επικοινωνίας *</label>
+              <label className="support-label">{t(lang, "field_email")}</label>
               <input
                 className={`support-input${errors.email ? " error" : ""}`}
-                placeholder="example@email.com"
+                placeholder={t(lang, "field_email_ph")}
                 value={email}
                 onChange={e => { setEmail(e.target.value); setErrors(p => ({ ...p, email: "" })); }}
               />
@@ -83,14 +107,16 @@ function SupportModal({ onClose, prefillName, prefillEmail }) {
 
             {/* Category */}
             <div className="support-field">
-              <label className="support-label">Κατηγορία προβλήματος *</label>
+              <label className="support-label">{t(lang, "field_category")}</label>
               <div className="category-grid">
                 {categories.map(c => (
                   <div
                     key={c}
                     className={`cat-opt${category === c ? " sel" : ""}`}
                     onClick={() => { setCategory(c); setErrors(p => ({ ...p, category: "" })); }}
-                  >{c}</div>
+                  >
+                    {c}
+                  </div>
                 ))}
               </div>
               {errors.category && <div className="error-hint">⚠ {errors.category}</div>}
@@ -98,10 +124,10 @@ function SupportModal({ onClose, prefillName, prefillEmail }) {
 
             {/* Subject */}
             <div className="support-field">
-              <label className="support-label">Θέμα *</label>
+              <label className="support-label">{t(lang, "field_subject")}</label>
               <input
                 className={`support-input${errors.subject ? " error" : ""}`}
-                placeholder="Σύντομη περιγραφή του προβλήματος"
+                placeholder={t(lang, "field_subject_ph")}
                 value={subject}
                 onChange={e => { setSubject(e.target.value); setErrors(p => ({ ...p, subject: "" })); }}
               />
@@ -110,10 +136,10 @@ function SupportModal({ onClose, prefillName, prefillEmail }) {
 
             {/* Message */}
             <div className="support-field">
-              <label className="support-label">Περιγραφή προβλήματος *</label>
+              <label className="support-label">{t(lang, "field_message")}</label>
               <textarea
                 className={`support-textarea${errors.message ? " error" : ""}`}
-                placeholder="Περίγραψε αναλυτικά το πρόβλημά σου..."
+                placeholder={t(lang, "field_message_ph")}
                 value={message}
                 onChange={e => { setMessage(e.target.value); setErrors(p => ({ ...p, message: "" })); }}
                 rows={4}
@@ -121,12 +147,16 @@ function SupportModal({ onClose, prefillName, prefillEmail }) {
               {errors.message && <div className="error-hint">⚠ {errors.message}</div>}
             </div>
 
-            <button className="btn btn-primary" onClick={handleSubmit} style={{ marginTop: 4 }}>
-              <Icon name="send" size={16} /> Αποστολή αιτήματος
+            <button
+              className="btn btn-primary"
+              onClick={handleSubmit}
+              style={{ marginTop: 4 }}
+            >
+              <Icon name="send" size={16} /> {t(lang, "btn_send")}
             </button>
 
             <div style={{ textAlign: "center", fontSize: 11, color: "var(--text3)", marginTop: 12 }}>
-              🔒 Τα στοιχεία σου είναι ασφαλή · Απάντηση εντός 24 ωρών
+              {t(lang, "privacy_note")}
             </div>
           </>
         )}
