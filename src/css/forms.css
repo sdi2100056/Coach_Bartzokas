@@ -1,43 +1,44 @@
-/* ── forms.css — form inputs, toggle options (listing / edit) ── */
+/* ── forms.css ── */
 
-.form-section { margin-bottom: 20px; }
+.form-section { margin-bottom: 22px; }
 
 .form-label {
-  font-size: 12px;
-  font-family: 'Syne', sans-serif;
-  font-weight: 600;
-  letter-spacing: .5px;
+  font-size: 11px;
+  font-family: 'Cabinet Grotesk', sans-serif;
+  font-weight: 700;
+  letter-spacing: .7px;
   text-transform: uppercase;
   display: block;
-  margin-bottom: 8px;
+  margin-bottom: 9px;
 }
 
 .form-input {
   width: 100%;
   border-radius: var(--radius-sm);
-  padding: 13px 16px;
-  font-family: 'DM Sans', sans-serif;
+  padding: 14px 16px;
+  font-family: 'Instrument Sans', sans-serif;
   font-size: 14px;
   outline: none;
-  transition: border-color .2s;
+  transition: border-color .2s, box-shadow .2s;
 }
-.form-input:focus        { border-color: var(--accent); }
 .form-input::placeholder { color: var(--text3); }
 
-.toggle-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.toggle-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
 
 .toggle-opt {
-  padding: 12px;
+  padding: 13px 12px;
   border-radius: var(--radius-sm);
   cursor: pointer;
   text-align: center;
-  font-family: 'Syne', sans-serif;
+  font-family: 'Cabinet Grotesk', sans-serif;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
   transition: all .2s;
+  letter-spacing: .2px;
 }
 .toggle-opt.sel {
   border-color: var(--accent);
-  background: rgba(0,201,138,0.1);
+  background: rgba(0,229,160,0.08);
   color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
 }
