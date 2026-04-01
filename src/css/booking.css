@@ -1,83 +1,85 @@
-/* ── booking.css — booking form, price summary, booking cards, success, buttons ── */
+/* ── booking.css ── */
 
-/* ── Booking form sections ── */
 .book-section {
   border-radius: var(--radius);
   padding: 20px;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
 }
 .book-title {
-  font-family: 'Syne', sans-serif;
+  font-family: 'Cabinet Grotesk', sans-serif;
   font-size: 15px;
-  font-weight: 700;
-  margin-bottom: 14px;
+  font-weight: 800;
+  margin-bottom: 16px;
   display: flex;
   align-items: center;
   gap: 8px;
+  letter-spacing: -.2px;
 }
 .book-row   { display: flex; gap: 10px; margin-bottom: 10px; }
-.book-field { flex: 1; border-radius: var(--radius-sm); padding: 12px; }
+.book-field { flex: 1; border-radius: var(--radius-sm); padding: 13px 14px; }
 .book-field label {
   font-size: 10px;
-  font-family: 'Syne', sans-serif;
-  font-weight: 600;
-  letter-spacing: .5px;
+  font-family: 'Cabinet Grotesk', sans-serif;
+  font-weight: 700;
+  letter-spacing: .7px;
   text-transform: uppercase;
   display: block;
-  margin-bottom: 4px;
+  margin-bottom: 5px;
 }
 .book-field input,
 .book-field select {
   background: transparent;
   border: none;
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Instrument Sans', sans-serif;
   font-size: 14px;
   width: 100%;
   outline: none;
 }
 
 /* ── Price summary ── */
-.price-summary { border-radius: var(--radius-sm); padding: 14px; }
-.price-row     { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px; }
+.price-summary { border-radius: var(--radius-sm); padding: 16px; }
+.price-row     { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 8px; }
 .price-row.total {
-  font-weight: 700;
-  font-family: 'Syne', sans-serif;
-  font-size: 15px;
+  font-weight: 800;
+  font-family: 'Cabinet Grotesk', sans-serif;
+  font-size: 17px;
   border-top-width: 1px;
   border-top-style: solid;
-  padding-top: 8px;
+  padding-top: 10px;
   margin-top: 8px;
 }
 
 /* ── Buttons ── */
 .btn {
   width: 100%;
-  padding: 16px;
+  padding: 17px;
   border-radius: var(--radius);
   border: none;
-  font-family: 'Syne', sans-serif;
+  font-family: 'Cabinet Grotesk', sans-serif;
   font-size: 15px;
-  font-weight: 700;
+  font-weight: 800;
   cursor: pointer;
-  transition: all .2s;
+  transition: all .22s;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
+  letter-spacing: .2px;
 }
-.btn-primary       { background: var(--accent); color: #fff; }
-.btn-primary:hover { filter: brightness(1.1); transform: translateY(-1px); }
+.btn-primary { background: var(--accent); color: #000; box-shadow: 0 4px 20px rgba(0,229,160,0.25); }
+.btn-primary:hover { filter: brightness(1.08); transform: translateY(-2px); box-shadow: 0 8px 28px rgba(0,229,160,0.35); }
+.btn-primary:active { transform: translateY(0); }
 
 /* ── Booking history cards ── */
-.booking-card { border-radius: var(--radius); padding: 16px; margin-bottom: 10px; }
-.booking-top  { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
-.booking-title{ font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; }
-.booking-amount{ font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; color: var(--accent); }
+.booking-card { border-radius: var(--radius); padding: 18px; margin-bottom: 12px; }
+.booking-top  { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+.booking-title{ font-family: 'Cabinet Grotesk', sans-serif; font-size: 15px; font-weight: 800; letter-spacing: -.2px; }
+.booking-amount { font-family: 'Cabinet Grotesk', sans-serif; font-size: 18px; font-weight: 900; color: var(--accent); }
 
-.badge         { padding: 4px 10px; border-radius: 50px; font-size: 11px; font-family: 'Syne', sans-serif; font-weight: 700; }
-.badge-active  { background: rgba(0,201,138,0.15); color: var(--accent); }
-.badge-upcoming{ background: rgba(0,153,255,0.15); color: var(--accent2); }
-.badge-done    { color: #888; }
+.badge          { padding: 5px 12px; border-radius: 50px; font-size: 11px; font-family: 'Cabinet Grotesk', sans-serif; font-weight: 700; letter-spacing: .3px; }
+.badge-active   { background: rgba(0,229,160,0.12); color: var(--accent); }
+.badge-upcoming { background: rgba(59,130,246,0.12); color: var(--accent2); }
+.badge-done     { color: var(--text3); }
 
 /* ── Success screen ── */
 .success-screen {
@@ -90,17 +92,18 @@
   min-height: 60vh;
 }
 .success-icon {
-  width: 80px; height: 80px;
+  width: 84px; height: 84px;
   border-radius: 50%;
-  background: rgba(0,201,138,0.15);
+  background: rgba(0,229,160,0.1);
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 24px;
+  margin-bottom: 26px;
   border: 2px solid var(--accent);
+  box-shadow: 0 0 40px rgba(0,229,160,0.2);
 }
-.success-title { font-family: 'Syne', sans-serif; font-size: 24px; font-weight: 800; margin-bottom: 8px; }
-.success-sub   { font-size: 15px; line-height: 1.6; margin-bottom: 32px; }
-.success-code  { border-radius: var(--radius); padding: 20px; width: 100%; margin-bottom: 24px; }
-.code-label    { font-size: 11px; margin-bottom: 4px; font-family: 'Syne', sans-serif; }
-.code-val      { font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 800; letter-spacing: 4px; color: var(--accent); }
+.success-title { font-family: 'Cabinet Grotesk', sans-serif; font-size: 26px; font-weight: 900; margin-bottom: 10px; letter-spacing: -.5px; }
+.success-sub   { font-size: 15px; line-height: 1.7; margin-bottom: 32px; }
+.success-code  { border-radius: var(--radius); padding: 22px; width: 100%; margin-bottom: 24px; }
+.code-label    { font-size: 11px; margin-bottom: 6px; font-family: 'Cabinet Grotesk', sans-serif; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; }
+.code-val      { font-family: 'Cabinet Grotesk', sans-serif; font-size: 30px; font-weight: 900; letter-spacing: 5px; color: var(--accent); }
