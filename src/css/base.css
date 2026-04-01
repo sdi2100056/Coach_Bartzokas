@@ -1,4 +1,4 @@
-/* ── base.css — reset, CSS variables, global fonts ── */
+/* ── base.css ── */
 
 *, *::before, *::after {
   box-sizing: border-box;
@@ -7,18 +7,22 @@
 }
 
 :root {
-  --accent:    #00c98a;
-  --accent2:   #0099ff;
-  --accent3:   #ff6b35;
-  --radius:    16px;
-  --radius-sm: 10px;
+  --accent:    #00e5a0;
+  --accent2:   #3b82f6;
+  --accent3:   #f97316;
+  --radius:    18px;
+  --radius-sm: 12px;
+  --radius-xs: 8px;
 }
 
+@import url('https://fonts.googleapis.com/css2?family=Cabinet+Grotesk:wght@400;500;700;800;900&family=Instrument+Sans:wght@400;500;600&display=swap');
+
 body {
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Instrument Sans', sans-serif;
   min-height: 100vh;
   overflow-x: hidden;
-  transition: background .3s, color .3s;
+  transition: background .4s, color .4s;
+  -webkit-font-smoothing: antialiased;
 }
 
 .app {
@@ -26,17 +30,26 @@ body {
   flex-direction: column;
   min-height: 100vh;
   width: 100%;
-  transition: background .3s;
+  transition: background .4s;
 }
 
 .page-wrapper {
   width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
 }
 
-.pb-nav {
-  padding-bottom: 80px;
-}
+.pb-nav { padding-bottom: 88px; }
 
 @media (min-width: 768px) {
   .pb-nav { padding-bottom: 20px; }
+  .page-wrapper { max-width: 100%; }
 }
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar       { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+/* ── Selection ── */
+::selection { background: rgba(0,229,160,0.25); }
