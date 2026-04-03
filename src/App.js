@@ -20,6 +20,7 @@ import { t } from "./i18n";
 // ── Components ──
 import Icon from "./components/Icon";
 import SupportModal from "./components/SupportModal";
+import ChatbotWidget from "./components/Chatbotwidget.js";   // ← ΝΕΟ
 
 // ── Pages ──
 import HomePage        from "./pages/HomePage";
@@ -40,7 +41,7 @@ export default function App() {
 
   // ── Global state ──
   const [darkMode,    setDarkMode]    = useState(true);
-  const [lang,        setLang]        = useState("el");   // ← NEW: "el" | "en"
+  const [lang,        setLang]        = useState("el");   // "el" | "en"
   const [tab,         setTab]         = useState("home");
   const [listings,    setListings]    = useState([]);
   const [bookings,    setBookings]    = useState([]);
@@ -111,13 +112,11 @@ export default function App() {
   const handleToggleLang = () => {
     const next = lang === "el" ? "en" : "el";
     setLang(next);
-    // Update the language menu item subtitle to reflect new state
     setProfileItems(prev => prev.map(p =>
       p.id === "language"
         ? { ...p, sub: next === "el" ? "🇬🇷 Ελληνικά" : "🇬🇧 English" }
         : p
     ));
-    // Also sync filter label to the new language default
     setFilter(next === "el" ? "Όλα" : "All");
   };
 
@@ -166,7 +165,7 @@ export default function App() {
       owner:       mockUser.name,
       rating:      5.0,
       reviews:     0,
-      userRating:  null,               // ← NEW: βαθμολογία χρήστη
+      userRating:  null,
       img:         listingType === "Υπαίθριος χώρος" || listingType === "Αυλή" ? "🌿" : "🏢",
       tags:        [listingType, "Νέα"],
     };
@@ -178,23 +177,18 @@ export default function App() {
     setTab("home");
   };
 
-  // ── Rating update (Feature 3) ──
-  // Όταν ο χρήστης βαθμολογεί μια αγγελία από το DetailPage
+  // ── Rating update ──
   const handleRateListing = (listingId, newRating) => {
     setListings(prev => prev.map(l => {
       if (l.id !== listingId) return l;
-      // Αν ο χρήστης είχε ήδη βαθμολογήσει, αντικαθιστούμε
-      // Απλό μοντέλο: (oldRating * oldCount - oldUserRating + newRating) / newCount
       const oldCount      = l.reviews;
       const oldUserRating = l.userRating ?? null;
       let newCount, newAvg;
       if (oldUserRating === null) {
-        // Πρώτη βαθμολογία
         newCount = oldCount + 1;
         newAvg   = ((l.rating * oldCount) + newRating) / newCount;
       } else {
-        // Αλλαγή υπάρχουσας βαθμολογίας
-        newCount = oldCount; // ο αριθμός κριτικών δεν αλλάζει
+        newCount = oldCount;
         newAvg   = ((l.rating * oldCount) - oldUserRating + newRating) / newCount;
       }
       return {
@@ -204,7 +198,6 @@ export default function App() {
         userRating: newRating,
       };
     }));
-    // Ενημέρωσε και το detail αν είναι ανοιχτό
     setDetail(prev => {
       if (!prev || prev.id !== listingId) return prev;
       return { ...prev, userRating: newRating };
@@ -361,6 +354,9 @@ export default function App() {
             lang={lang}
           />
         )}
+
+        {/* ── Chatbot Widget (εμφανίζεται σε όλες τις σελίδες) ── */}
+        <ChatbotWidget lang={lang} />
 
         {/* ── Navigation ── */}
         <nav className="nav">
