@@ -20,7 +20,7 @@ import { t } from "./i18n";
 // ── Components ──
 import Icon from "./components/Icon";
 import SupportModal from "./components/SupportModal";
-import ChatbotWidget from "./components/ChatboWidget.js";   // ← ΝΕΟ
+import ChatbotWidget from "./components/ChatbotWidget.js";   // ← ΝΕΟ
 
 // ── Pages ──
 import HomePage        from "./pages/HomePage";
