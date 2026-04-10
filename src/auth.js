@@ -5,7 +5,7 @@ import {
   sendPasswordResetEmail,
   updateProfile
 } from "firebase/auth";
-import { auth } from "../firebase";
+import { auth } from "./firebase";
 import { saveUserProfile } from "./firestore";
 
 // Εγγραφή νέου χρήστη
