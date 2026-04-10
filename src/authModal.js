@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { registerUser, loginUser } from "../services/auth";
+import { registerUser, loginUser } from "./auth";
 
 const AuthModal = ({ onClose, onSuccess }) => {
   const [isLogin, setIsLogin] = useState(true);
