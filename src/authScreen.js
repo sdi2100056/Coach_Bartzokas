@@ -192,7 +192,7 @@ const AuthScreen = ({ onAuthSuccess }) => {
           }}
           style={styles.demoButton}
         >
-          🔑 Δοκιμαστικό Demo (demo@parkshare.gr / demo123)
+          🔑 Δοκιμαστικό Demo (ck271103@gmail.com / 1234567)
         </button>
       </div>
     </div>
