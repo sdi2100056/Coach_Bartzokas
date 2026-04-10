@@ -1,5 +1,5 @@
 // ── App.js — κεντρικό αρχείο, συναρμολογεί όλα τα modules ──
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 // ── CSS imports ──
 import "./css/base.css";
