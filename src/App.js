@@ -315,14 +315,15 @@ export default function App() {
           )}
 
           {tab === "bookings" && (
-            <BookingsPage bookings={bookings} toggle={toggle} darkMode={darkMode} lang={lang} />
+            <BookingsPage bookings={bookings} currentUser={currentUser} toggle={toggle} darkMode={darkMode} lang={lang} />
           )}
 
           {tab === "dashboard" && (
             <DashboardPage
               bookings={ownerBookings}
-              listings={listings.filter(l => l.ownerUid === currentUser?.uid)}
-              toggle={toggle} darkMode={darkMode} lang={lang}
+listings={listings.filter(l => l.ownerUid === currentUser?.uid)}
+currentUser={currentUser}
+toggle={toggle} darkMode={darkMode} lang={lang}
             />
           )}
 
