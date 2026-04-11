@@ -356,9 +356,9 @@ export default function App() {
           )}
         </div>
 
-        {detail && (
-          <DetailPage listing={detail} onClose={() => setDetail(null)} onBook={handleBook} lang={lang} />
-        )}
+       {detail && (
+  <DetailPage listing={detail} onClose={() => setDetail(null)} onBook={handleBook} lang={lang} />
+)}
 
         {booking && (
           <BookingFormPage
