@@ -27,7 +27,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 
 export const auth           = getAuth(app);
-export const db             = getFirestore(app);      // ← ΝΕΟ
+export const db = getFirestore(app, "parkshare");     // ← SOS
 export const googleProvider = new GoogleAuthProvider();
 
 // ── Auth helpers ──────────────────────────────────────────────────────────────
