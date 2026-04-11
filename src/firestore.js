@@ -10,10 +10,10 @@ import {
   getDocs,
   setDoc,
   updateDoc,
-  deleteDoc,
   query,
   where,
   orderBy,
+  onSnapshot,
   serverTimestamp,
 } from "firebase/firestore";
 
@@ -21,7 +21,6 @@ import {
 // USERS
 // ─────────────────────────────────────────────────────────────────────────────
 
-/** Αποθήκευση προφίλ χρήστη μετά την εγγραφή */
 export async function saveUserProfile(uid, data) {
   await setDoc(doc(db, "users", uid), {
     ...data,
@@ -29,13 +28,11 @@ export async function saveUserProfile(uid, data) {
   });
 }
 
-/** Ανάκτηση προφίλ χρήστη */
 export async function getUserProfile(uid) {
   const snap = await getDoc(doc(db, "users", uid));
   return snap.exists() ? { id: snap.id, ...snap.data() } : null;
 }
 
-/** Ενημέρωση προφίλ χρήστη */
 export async function updateUserProfile(uid, data) {
   await updateDoc(doc(db, "users", uid), {
     ...data,
@@ -44,10 +41,9 @@ export async function updateUserProfile(uid, data) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// LISTINGS (θέσεις parking)
+// LISTINGS
 // ─────────────────────────────────────────────────────────────────────────────
 
-/** Δημοσίευση νέας θέσης */
 export async function addListing(listingData) {
   const docRef = await addDoc(collection(db, "listings"), {
     ...listingData,
@@ -59,7 +55,6 @@ export async function addListing(listingData) {
   return docRef.id;
 }
 
-/** Ανάκτηση όλων των ενεργών θέσεων */
 export async function getListings() {
   const q = query(
     collection(db, "listings"),
@@ -70,7 +65,6 @@ export async function getListings() {
   return snap.docs.map(d => ({ id: d.id, ...d.data() }));
 }
 
-/** Ανάκτηση θέσεων συγκεκριμένου χρήστη */
 export async function getUserListings(uid) {
   const q = query(
     collection(db, "listings"),
@@ -81,7 +75,6 @@ export async function getUserListings(uid) {
   return snap.docs.map(d => ({ id: d.id, ...d.data() }));
 }
 
-/** Ενημέρωση θέσης */
 export async function updateListing(listingId, data) {
   await updateDoc(doc(db, "listings", listingId), {
     ...data,
@@ -89,16 +82,14 @@ export async function updateListing(listingId, data) {
   });
 }
 
-/** Διαγραφή θέσης */
 export async function deleteListing(listingId) {
   await updateDoc(doc(db, "listings", listingId), { active: false });
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// BOOKINGS (κρατήσεις)
+// BOOKINGS
 // ─────────────────────────────────────────────────────────────────────────────
 
-/** Δημιουργία νέας κράτησης */
 export async function addBooking(bookingData) {
   const docRef = await addDoc(collection(db, "bookings"), {
     ...bookingData,
@@ -108,7 +99,6 @@ export async function addBooking(bookingData) {
   return docRef.id;
 }
 
-/** Ανάκτηση κρατήσεων χρήστη (ως οδηγός) */
 export async function getUserBookings(uid) {
   const q = query(
     collection(db, "bookings"),
@@ -119,7 +109,6 @@ export async function getUserBookings(uid) {
   return snap.docs.map(d => ({ id: d.id, ...d.data() }));
 }
 
-/** Ανάκτηση κρατήσεων για τις θέσεις ενός ιδιοκτήτη */
 export async function getOwnerBookings(uid) {
   const q = query(
     collection(db, "bookings"),
@@ -130,10 +119,73 @@ export async function getOwnerBookings(uid) {
   return snap.docs.map(d => ({ id: d.id, ...d.data() }));
 }
 
-/** Ενημέρωση status κράτησης */
 export async function updateBookingStatus(bookingId, status) {
   await updateDoc(doc(db, "bookings", bookingId), {
     status,
     updatedAt: serverTimestamp(),
   });
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MESSAGES (συνομιλίες μεταξύ driver & owner)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Δημιουργεί ή επιστρέφει conversation ID μεταξύ δύο χρηστών για συγκεκριμένη κράτηση.
+ * ID = bookingId (1 conversation ανά κράτηση)
+ */
+export async function getOrCreateConversation(bookingId, driverUid, ownerUid, listingTitle) {
+  const convRef = doc(db, "conversations", bookingId);
+  const snap = await getDoc(convRef);
+  if (!snap.exists()) {
+    await setDoc(convRef, {
+      bookingId,
+      driverUid,
+      ownerUid,
+      listingTitle,
+      createdAt: serverTimestamp(),
+      lastMessage: "",
+      lastMessageAt: serverTimestamp(),
+    });
+  }
+  return bookingId;
+}
+
+/** Στέλνει μήνυμα σε συνομιλία */
+export async function sendMessage(conversationId, senderUid, senderName, text) {
+  const msgRef = collection(db, "conversations", conversationId, "messages");
+  await addDoc(msgRef, {
+    senderUid,
+    senderName,
+    text,
+    createdAt: serverTimestamp(),
+    read: false,
+  });
+  // Ενημέρωση lastMessage στη conversation
+  await updateDoc(doc(db, "conversations", conversationId), {
+    lastMessage: text,
+    lastMessageAt: serverTimestamp(),
+  });
+}
+
+/** Real-time listener για μηνύματα συνομιλίας */
+export function subscribeToMessages(conversationId, callback) {
+  const q = query(
+    collection(db, "conversations", conversationId, "messages"),
+    orderBy("createdAt", "asc")
+  );
+  return onSnapshot(q, snap => {
+    const msgs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    callback(msgs);
+  });
+}
+
+/** Ανάκτηση όλων των conversations για έναν χρήστη */
+export async function getUserConversations(uid) {
+  const asDriver = query(collection(db, "conversations"), where("driverUid", "==", uid));
+  const asOwner  = query(collection(db, "conversations"), where("ownerUid",  "==", uid));
+  const [d, o] = await Promise.all([getDocs(asDriver), getDocs(asOwner)]);
+  const all = [...d.docs, ...o.docs].map(doc => ({ id: doc.id, ...doc.data() }));
+  // Αφαίρεση διπλότυπων
+  return all.filter((v, i, a) => a.findIndex(t => t.id === v.id) === i);
 }
