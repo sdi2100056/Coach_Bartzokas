@@ -400,19 +400,7 @@ const AuthScreen = ({ onAuthSuccess }) => {
                 {isLogin ? "Δεν έχεις λογαριασμό; Εγγράψου" : "Έχεις ήδη λογαριασμό; Συνδέσου"}
               </button>
 
-              <div className="auth-features">
-                {[
-                  { icon: "🔒", label: "Ασφαλές" },
-                  { icon: "⚡", label: "Γρήγορο" },
-                  { icon: "🅿️", label: "Εύκολο" },
-                  { icon: "💚", label: "Δωρεάν" },
-                ].map(f => (
-                  <div key={f.label} className="auth-feature">
-                    <div className="auth-feature-icon">{f.icon}</div>
-                    <div className="auth-feature-label">{f.label}</div>
-                  </div>
-                ))}
-              </div>
+              
             </>
           )}
         </div>
