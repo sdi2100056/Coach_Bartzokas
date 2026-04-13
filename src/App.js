@@ -1,7 +1,6 @@
-// ── App.js — κεντρικό αρχείο, συναρμολογεί όλα τα modules ──
+// ── App.js ──
 import { useState, useEffect } from "react";
 
-// ── CSS imports ──
 import "./css/base.css";
 import "./css/layout.css";
 import "./css/cards.css";
@@ -12,27 +11,27 @@ import "./css/profile.css";
 import "./css/support.css";
 import AuthScreen from "./authScreen";
 
-// ── Dynamic theme (dark/light CSS vars) ──
 import { getThemeVars } from "./css/theme.js";
-
-// ── i18n ──
 import { t } from "./i18n";
 
 import { onAuthChange, logout } from "./firebase";
-import { getListings, addListing, getUserBookings, addBooking, getOwnerBookings } from "./firestore";
+import {
+  getListings, addListing,
+  getUserBookings, addBooking, getOwnerBookings,
+  subscribeToConversations,
+} from "./firestore";
 
-// ── Components ──
-import Icon from "./components/Icon";
-import SupportModal from "./components/SupportModal";
-import ChatbotWidget from "./components/ChatbotWidget.js";   // ← ΝΕΟ
+import Icon          from "./components/Icon";
+import SupportModal  from "./components/SupportModal";
+import ChatbotWidget from "./components/ChatbotWidget.js";
 import AuthModal     from "./authModal";
 
-// ── Pages ──
 import HomePage        from "./pages/HomePage";
 import BookingsPage    from "./pages/BookingsPage";
 import DashboardPage   from "./pages/DashboardPage";
 import ListingPage     from "./pages/ListingPage";
 import ProfilePage     from "./pages/ProfilePage";
+import MessagesPage    from "./pages/MessagesPage";
 import DetailPage      from "./pages/DetailPage";
 import BookingFormPage from "./pages/BookingFormPage";
 import EditProfilePage from "./pages/EditProfilePage";
@@ -53,6 +52,10 @@ export default function App() {
   const [filter,        setFilter]        = useState("Όλα");
   const [showSupport,   setShowSupport]   = useState(false);
   const [dbLoading,     setDbLoading]     = useState(false);
+
+  // ── Unread messages count (real-time) ──
+  const [conversations,  setConversations]  = useState([]);
+  const [unreadTotal,    setUnreadTotal]    = useState(0);
 
   const [detail,  setDetail]  = useState(null);
   const [booking, setBooking] = useState(null);
@@ -78,6 +81,7 @@ export default function App() {
     { id: "insurance", icon: "shield",   title: "Ασφαλιστική κάλυψη",      sub: "Ενεργή έως 12/2026",             editable: true  },
     { id: "payments",  icon: "euro",     title: "Πληρωμές & Χρεώσεις",     sub: "Visa •••• 4242",                 editable: true  },
     { id: "stats",     icon: "chartbar", title: "Στατιστικά",               sub: "0 κρατήσεις · €0 εξοικονόμηση", editable: true  },
+    { id: "dashboard", icon: "chartbar", title: "Dashboard Ιδιοκτήτη",      sub: "Έσοδα & κρατήσεις",             editable: false, isDashboard: true },
     { id: "support",   icon: "phone",    title: "Υποστήριξη 24/7",          sub: "Επικοινωνία με την ομάδα",       editable: false, isSupport: true },
     { id: "language",  icon: "globe",    title: "Γλώσσα / Language",        sub: "🇬🇷 Ελληνικά",                   editable: false, isLanguage: true },
   ]);
@@ -86,8 +90,8 @@ export default function App() {
   const [editIsEmail,      setEditIsEmail]      = useState(false);
   const [editEmailError,   setEditEmailError]   = useState("");
 
+  // ── Auth listener ──
   useEffect(() => {
-  logout().then(() => {
     const unsubscribe = onAuthChange(async (user) => {
       setCurrentUser(user);
       setAuthLoading(false);
@@ -97,12 +101,23 @@ export default function App() {
         setListings([]);
         setBookings([]);
         setOwnerBookings([]);
+        setConversations([]);
+        setUnreadTotal(0);
       }
     });
-    // ✅ Επιστρέφουμε το unsubscribe σωστά
-    return () => unsubscribe();
-  });
-}, []);
+    return unsubscribe;
+  }, []);
+
+  // ── Real-time unread messages listener ──
+  useEffect(() => {
+    if (!currentUser) return;
+    const unsub = subscribeToConversations(currentUser.uid, (convs) => {
+      setConversations(convs);
+      const total = convs.reduce((sum, c) => sum + (c.unread?.[currentUser.uid] || 0), 0);
+      setUnreadTotal(total);
+    });
+    return unsub;
+  }, [currentUser]);
 
   const loadAllData = async (uid) => {
     setDbLoading(true);
@@ -163,6 +178,8 @@ export default function App() {
     setListings([]);
     setBookings([]);
     setOwnerBookings([]);
+    setConversations([]);
+    setUnreadTotal(0);
     setTab("home");
   };
 
@@ -245,7 +262,7 @@ export default function App() {
   };
 
   const handleNav = (id) => {
-    if (!currentUser && ["bookings", "list", "dashboard", "profile"].includes(id)) {
+    if (!currentUser && ["bookings", "list", "messages", "profile"].includes(id)) {
       setShowAuthModal(true);
       return;
     }
@@ -254,15 +271,15 @@ export default function App() {
     setTab(id);
   };
 
+  // ── Nav items — Dashboard αφαιρέθηκε, προστέθηκε Messages ──
   const NAV_ITEMS = [
-    { id: "home",      icon: "home",     label: t(lang, "nav_home")      },
-    { id: "bookings",  icon: "calendar", label: t(lang, "nav_bookings")  },
-    { id: "list",      icon: "plus",     label: t(lang, "nav_add")       },
-    { id: "dashboard", icon: "chartbar", label: t(lang, "nav_dashboard") },
-    { id: "profile",   icon: "user",     label: t(lang, "nav_profile")   },
+    { id: "home",     icon: "home",     label: t(lang, "nav_home")     },
+    { id: "bookings", icon: "calendar", label: t(lang, "nav_bookings") },
+    { id: "list",     icon: "plus",     label: t(lang, "nav_add")      },
+    { id: "messages", icon: "chat",     label: "Μηνύματα",  badge: unreadTotal },
+    { id: "profile",  icon: "user",     label: t(lang, "nav_profile")  },
   ];
 
-  // Φόρτωση
   if (authLoading) {
     return (
       <>
@@ -280,7 +297,6 @@ export default function App() {
     );
   }
 
-  // Αν δεν είναι συνδεδεμένος → αρχική οθόνη login
   if (!currentUser) {
     return (
       <>
@@ -315,15 +331,17 @@ export default function App() {
           )}
 
           {tab === "bookings" && (
-            <BookingsPage bookings={bookings} currentUser={currentUser} toggle={toggle} darkMode={darkMode} lang={lang} />
+            <BookingsPage
+              bookings={bookings}
+              currentUser={currentUser}
+              toggle={toggle} darkMode={darkMode} lang={lang}
+            />
           )}
 
-          {tab === "dashboard" && (
-            <DashboardPage
-              bookings={ownerBookings}
-listings={listings.filter(l => l.ownerUid === currentUser?.uid)}
-currentUser={currentUser}
-toggle={toggle} darkMode={darkMode} lang={lang}
+          {tab === "messages" && (
+            <MessagesPage
+              currentUser={currentUser}
+              toggle={toggle} darkMode={darkMode}
             />
           )}
 
@@ -351,15 +369,32 @@ toggle={toggle} darkMode={darkMode} lang={lang}
               setShowSupport={setShowSupport}
               onToggleLang={handleToggleLang}
               onLogout={handleLogout}
+              onGoToDashboard={() => setTab("dashboard")}
               lang={lang}
               toggle={toggle} darkMode={darkMode}
             />
           )}
+
+          {tab === "dashboard" && (
+            <DashboardPage
+              bookings={ownerBookings}
+              listings={listings.filter(l => l.ownerUid === currentUser?.uid)}
+              currentUser={currentUser}
+              toggle={toggle} darkMode={darkMode} lang={lang}
+              onBack={() => setTab("profile")}
+            />
+          )}
         </div>
 
-       {detail && (
-  <DetailPage listing={detail} onClose={() => setDetail(null)} onBook={handleBook} onRate={() => {}} lang={lang} />
-)}
+        {detail && (
+          <DetailPage
+            listing={detail}
+            onClose={() => setDetail(null)}
+            onBook={handleBook}
+            onRate={() => {}}
+            lang={lang}
+          />
+        )}
 
         {booking && (
           <BookingFormPage
@@ -408,14 +443,47 @@ toggle={toggle} darkMode={darkMode} lang={lang}
 
         <ChatbotWidget lang={lang} />
 
+        {/* ── Navigation ── */}
         <nav className="nav">
           {NAV_ITEMS.map(n => (
-            <div key={n.id} className={`nav-item ${tab === n.id ? "active" : ""}`} onClick={() => handleNav(n.id)}>
+            <div
+              key={n.id}
+              className={`nav-item ${tab === n.id ? "active" : ""}`}
+              onClick={() => handleNav(n.id)}
+              style={{ position: "relative" }}
+            >
               <Icon name={n.icon} size={22} />
               {n.label}
+              {/* Unread badge */}
+              {n.badge > 0 && (
+                <div style={{
+                  position: "absolute",
+                  top: 4, right: "calc(50% - 18px)",
+                  background: "var(--accent)",
+                  color: "#fff",
+                  borderRadius: 50,
+                  minWidth: 18, height: 18,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  fontSize: 10,
+                  fontFamily: "'Syne',sans-serif",
+                  fontWeight: 800,
+                  padding: "0 4px",
+                  boxShadow: "0 0 6px rgba(0,201,138,0.6)",
+                  animation: "pulse 2s infinite",
+                }}>
+                  {n.badge > 9 ? "9+" : n.badge}
+                </div>
+              )}
             </div>
           ))}
         </nav>
+
+        <style>{`
+          @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50%       { transform: scale(1.15); }
+          }
+        `}</style>
       </div>
     </>
   );
