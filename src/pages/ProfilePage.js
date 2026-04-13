@@ -17,6 +17,7 @@ function ProfilePage({
   setShowSupport,
   onToggleLang,
   onLogout,
+  onGoToDashboard,   // ← νέο: πλοήγηση στο Dashboard
   lang,
   toggle, darkMode,
 }) {
@@ -27,31 +28,22 @@ function ProfilePage({
   const [isVerified,      setIsVerified]      = useState(currentUser?.emailVerified ?? false);
   const fileInputRef = useRef(null);
 
-  // ── Στείλε ξανά email επαλήθευσης ──
   const handleResendVerification = async () => {
     setVerifyLoading(true);
     setVerifyMsg("");
     const result = await resendVerificationEmail();
     setVerifyLoading(false);
-    setVerifyMsg(result.success
-      ? "✅ Στάλθηκε! Έλεγξε το email σου."
-      : "❌ " + result.error
-    );
+    setVerifyMsg(result.success ? "✅ Στάλθηκε! Έλεγξε το email σου." : "❌ " + result.error);
   };
 
-  // ── Έλεγξε αν επαληθεύτηκε (μετά το κλικ στο link) ──
   const handleCheckVerification = async () => {
     setVerifyLoading(true);
     const verified = await refreshVerificationStatus();
     setIsVerified(verified);
     setVerifyLoading(false);
-    setVerifyMsg(verified
-      ? "🎉 Το email σου επαληθεύτηκε!"
-      : "Δεν έχει επαληθευτεί ακόμα. Έλεγξε το email σου."
-    );
+    setVerifyMsg(verified ? "🎉 Το email σου επαληθεύτηκε!" : "Δεν έχει επαληθευτεί ακόμα.");
   };
 
-  // ── Avatar ──
   const handleFileChange = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -72,8 +64,9 @@ function ProfilePage({
   };
 
   const handleMenuClick = (item) => {
-    if (item.isSupport)  { setShowSupport(true); return; }
-    if (item.isLanguage) { onToggleLang();        return; }
+    if (item.isSupport)   { setShowSupport(true);  return; }
+    if (item.isLanguage)  { onToggleLang();         return; }
+    if (item.isDashboard) { onGoToDashboard();      return; } // ← νέο
     if (item.editable) {
       setEditingProfileId(item.id);
       setEditProfileValue(item.sub);
@@ -109,23 +102,18 @@ function ProfilePage({
         <div className="profile-name">{displayName}</div>
         <div className="profile-email">{displayEmail}</div>
 
-        {/* ── Verification Badge ── */}
+        {/* Verification Badge */}
         <div style={{ marginTop: 10, display: "flex", flexDirection: "column", alignItems: "center", gap: 8, width: "100%" }}>
-
-          {/* Badge — γεμάτο αν verified, περίγραμμα μόνο αν όχι */}
           <div style={{
             display: "inline-flex", alignItems: "center", gap: 6,
             background: isVerified ? "rgba(0,201,138,0.15)" : "transparent",
             border: isVerified ? "1px solid var(--accent)" : "1px solid rgba(0,201,138,0.4)",
-            borderRadius: 50,
-            padding: "6px 14px",
-            fontSize: 12,
+            borderRadius: 50, padding: "6px 14px", fontSize: 12,
             color: isVerified ? "var(--accent)" : "rgba(0,201,138,0.6)",
             fontFamily: "'Syne',sans-serif", fontWeight: 700,
             transition: "all .4s ease",
-            boxShadow: isVerified ? "0 0 16px rgba(0,201,138,0.3), 0 0 4px rgba(0,201,138,0.15)" : "none",
+            boxShadow: isVerified ? "0 0 16px rgba(0,201,138,0.3)" : "none",
           }}>
-            {/* Shield — γεμάτο με checkmark αν verified */}
             <svg width={13} height={13} viewBox="0 0 24 24"
               fill={isVerified ? "var(--accent)" : "none"}
               stroke={isVerified ? "var(--accent)" : "rgba(0,201,138,0.6)"}
@@ -136,48 +124,30 @@ function ProfilePage({
             {isVerified ? "✓ Επαληθευμένος χρήστης" : t(lang, "verified")}
           </div>
 
-          {/* Panel επαλήθευσης — εμφανίζεται ΜΟΝΟ αν δεν είναι verified */}
           {!isVerified && (
             <div style={{
-              background: "rgba(255,107,53,0.06)",
-              border: "1px solid rgba(255,107,53,0.18)",
-              borderRadius: 14, padding: "12px 16px",
-              width: "100%", textAlign: "center",
+              background: "rgba(255,107,53,0.06)", border: "1px solid rgba(255,107,53,0.18)",
+              borderRadius: 14, padding: "12px 16px", width: "100%", textAlign: "center",
             }}>
               <div style={{ fontSize: 12, color: "var(--text2)", marginBottom: 10, lineHeight: 1.5 }}>
                 📧 Επαλήθευσε το email σου για πλήρη πρόσβαση
               </div>
-
-              {verifyMsg && (
-                <div style={{ fontSize: 12, color: "var(--accent)", marginBottom: 10 }}>
-                  {verifyMsg}
-                </div>
-              )}
-
+              {verifyMsg && <div style={{ fontSize: 12, color: "var(--accent)", marginBottom: 10 }}>{verifyMsg}</div>}
               <div style={{ display: "flex", gap: 8 }}>
                 <button onClick={handleResendVerification} disabled={verifyLoading} style={{
                   flex: 1, padding: "8px",
-                  background: "rgba(255,107,53,0.12)",
-                  border: "1px solid rgba(255,107,53,0.25)",
+                  background: "rgba(255,107,53,0.12)", border: "1px solid rgba(255,107,53,0.25)",
                   borderRadius: 10, color: "var(--accent3)",
                   fontFamily: "'Syne',sans-serif", fontWeight: 700, fontSize: 11,
-                  cursor: verifyLoading ? "not-allowed" : "pointer",
-                  opacity: verifyLoading ? 0.6 : 1,
-                }}>
-                  {verifyLoading ? "..." : "📨 Αποστολή email"}
-                </button>
-
+                  cursor: verifyLoading ? "not-allowed" : "pointer", opacity: verifyLoading ? 0.6 : 1,
+                }}>{verifyLoading ? "..." : "📨 Αποστολή email"}</button>
                 <button onClick={handleCheckVerification} disabled={verifyLoading} style={{
                   flex: 1, padding: "8px",
-                  background: "rgba(0,201,138,0.08)",
-                  border: "1px solid rgba(0,201,138,0.2)",
+                  background: "rgba(0,201,138,0.08)", border: "1px solid rgba(0,201,138,0.2)",
                   borderRadius: 10, color: "var(--accent)",
                   fontFamily: "'Syne',sans-serif", fontWeight: 700, fontSize: 11,
-                  cursor: verifyLoading ? "not-allowed" : "pointer",
-                  opacity: verifyLoading ? 0.6 : 1,
-                }}>
-                  {verifyLoading ? "..." : "✓ Έχω επαληθεύσει"}
-                </button>
+                  cursor: verifyLoading ? "not-allowed" : "pointer", opacity: verifyLoading ? 0.6 : 1,
+                }}>{verifyLoading ? "..." : "✓ Έχω επαληθεύσει"}</button>
               </div>
             </div>
           )}
@@ -195,15 +165,11 @@ function ProfilePage({
               <Icon name="upload" size={15} /> {t(lang, "upload_photo")}
             </button>
             <input ref={fileInputRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleFileChange} />
-
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
               <div style={{ flex: 1, height: 1, background: "var(--border)" }} />
-              <span style={{ fontSize: 11, color: "var(--text3)", fontFamily: "'Syne',sans-serif", fontWeight: 600 }}>
-                {t(lang, "choose_avatar")}
-              </span>
+              <span style={{ fontSize: 11, color: "var(--text3)", fontFamily: "'Syne',sans-serif", fontWeight: 600 }}>{t(lang, "choose_avatar")}</span>
               <div style={{ flex: 1, height: 1, background: "var(--border)" }} />
             </div>
-
             <div style={{ display: "grid", gridTemplateColumns: "repeat(8, 1fr)", gap: 8, marginBottom: 12 }}>
               {DEFAULT_AVATARS.map(emoji => (
                 <div key={emoji} onClick={() => { setAvatar(emoji); setShowAvatarPanel(false); }} style={{
@@ -217,7 +183,6 @@ function ProfilePage({
                 >{emoji}</div>
               ))}
             </div>
-
             <button onClick={() => setShowAvatarPanel(false)} style={{
               width: "100%", padding: "10px", background: "transparent",
               border: "1px solid var(--border)", borderRadius: 12,
@@ -227,7 +192,7 @@ function ProfilePage({
         )}
       </div>
 
-      {/* ── Menu Items ── */}
+      {/* Menu Items */}
       {profileItems.map((item) => (
         <div key={item.id} className="menu-item" onClick={() => handleMenuClick(item)}>
           <div className="menu-icon"><Icon name={item.icon} size={18} /></div>
@@ -247,7 +212,7 @@ function ProfilePage({
         </div>
       ))}
 
-      {/* ── Logout ── */}
+      {/* Logout */}
       <div style={{ padding: "24px 20px", display: "flex", justifyContent: "center" }}>
         <button onClick={onLogout} style={{
           background: "transparent", border: "none", color: "var(--accent3)",
