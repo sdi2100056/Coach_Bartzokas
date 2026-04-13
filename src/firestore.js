@@ -1,6 +1,4 @@
 // src/firestore.js
-// ── Όλες οι λειτουργίες βάσης δεδομένων (Firestore) ──
-
 import { db } from "./firebase";
 import {
   collection,
@@ -127,13 +125,10 @@ export async function updateBookingStatus(bookingId, status) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// MESSAGES (συνομιλίες μεταξύ driver & owner)
+// MESSAGES
 // ─────────────────────────────────────────────────────────────────────────────
 
-/**
- * Δημιουργεί ή επιστρέφει conversation ID μεταξύ δύο χρηστών για συγκεκριμένη κράτηση.
- * ID = bookingId (1 conversation ανά κράτηση)
- */
+/** Δημιουργεί ή επιστρέφει conversation ID για συγκεκριμένη κράτηση */
 export async function getOrCreateConversation(bookingId, driverUid, ownerUid, listingTitle) {
   const convRef = doc(db, "conversations", bookingId);
   const snap = await getDoc(convRef);
@@ -143,16 +138,18 @@ export async function getOrCreateConversation(bookingId, driverUid, ownerUid, li
       driverUid,
       ownerUid,
       listingTitle,
-      createdAt: serverTimestamp(),
-      lastMessage: "",
+      createdAt:     serverTimestamp(),
+      lastMessage:   "",
       lastMessageAt: serverTimestamp(),
+      // unread count ανά χρήστη: { [uid]: count }
+      unread: { [driverUid]: 0, [ownerUid]: 0 },
     });
   }
   return bookingId;
 }
 
-/** Στέλνει μήνυμα σε συνομιλία */
-export async function sendMessage(conversationId, senderUid, senderName, text) {
+/** Στέλνει μήνυμα και αυξάνει unread του παραλήπτη */
+export async function sendMessage(conversationId, senderUid, senderName, text, recipientUid) {
   const msgRef = collection(db, "conversations", conversationId, "messages");
   await addDoc(msgRef, {
     senderUid,
@@ -161,10 +158,33 @@ export async function sendMessage(conversationId, senderUid, senderName, text) {
     createdAt: serverTimestamp(),
     read: false,
   });
-  // Ενημέρωση lastMessage στη conversation
-  await updateDoc(doc(db, "conversations", conversationId), {
-    lastMessage: text,
+
+  // Ενημέρωση lastMessage + αύξηση unread του παραλήπτη
+  const convRef = doc(db, "conversations", conversationId);
+  const convSnap = await getDoc(convRef);
+  const currentUnread = convSnap.exists()
+    ? (convSnap.data().unread || {})
+    : {};
+
+  await updateDoc(convRef, {
+    lastMessage:   text,
+    lastSenderUid: senderUid,
     lastMessageAt: serverTimestamp(),
+    unread: {
+      ...currentUnread,
+      [recipientUid]: (currentUnread[recipientUid] || 0) + 1,
+    },
+  });
+}
+
+/** Μηδενισμός unread για συγκεκριμένο χρήστη όταν ανοίγει τη συνομιλία */
+export async function markConversationRead(conversationId, uid) {
+  const convRef  = doc(db, "conversations", conversationId);
+  const convSnap = await getDoc(convRef);
+  if (!convSnap.exists()) return;
+  const currentUnread = convSnap.data().unread || {};
+  await updateDoc(convRef, {
+    unread: { ...currentUnread, [uid]: 0 },
   });
 }
 
@@ -175,17 +195,48 @@ export function subscribeToMessages(conversationId, callback) {
     orderBy("createdAt", "asc")
   );
   return onSnapshot(q, snap => {
-    const msgs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    callback(msgs);
+    callback(snap.docs.map(d => ({ id: d.id, ...d.data() })));
   });
 }
 
-/** Ανάκτηση όλων των conversations για έναν χρήστη */
+/** Real-time listener για ΟΛΕς τις conversations ενός χρήστη (για unread badge) */
+export function subscribeToConversations(uid, callback) {
+  // Δύο queries: ως driver και ως owner
+  let convosDriver = [];
+  let convosOwner  = [];
+
+  const merge = () => {
+    const all = [...convosDriver, ...convosOwner];
+    // Αφαίρεση διπλότυπων
+    const unique = all.filter((v, i, a) => a.findIndex(t => t.id === v.id) === i);
+    // Ταξινόμηση: νεότερο πρώτο
+    unique.sort((a, b) => {
+      const ta = a.lastMessageAt?.toDate?.() || new Date(0);
+      const tb = b.lastMessageAt?.toDate?.() || new Date(0);
+      return tb - ta;
+    });
+    callback(unique);
+  };
+
+  const unsubDriver = onSnapshot(
+    query(collection(db, "conversations"), where("driverUid", "==", uid)),
+    snap => { convosDriver = snap.docs.map(d => ({ id: d.id, ...d.data() })); merge(); }
+  );
+
+  const unsubOwner = onSnapshot(
+    query(collection(db, "conversations"), where("ownerUid", "==", uid)),
+    snap => { convosOwner = snap.docs.map(d => ({ id: d.id, ...d.data() })); merge(); }
+  );
+
+  // Επιστρέφει συνάρτηση για unsubscribe και των δύο
+  return () => { unsubDriver(); unsubOwner(); };
+}
+
+/** One-time fetch conversations (για αρχικό load) */
 export async function getUserConversations(uid) {
   const asDriver = query(collection(db, "conversations"), where("driverUid", "==", uid));
   const asOwner  = query(collection(db, "conversations"), where("ownerUid",  "==", uid));
-  const [d, o] = await Promise.all([getDocs(asDriver), getDocs(asOwner)]);
+  const [d, o]   = await Promise.all([getDocs(asDriver), getDocs(asOwner)]);
   const all = [...d.docs, ...o.docs].map(doc => ({ id: doc.id, ...doc.data() }));
-  // Αφαίρεση διπλότυπων
   return all.filter((v, i, a) => a.findIndex(t => t.id === v.id) === i);
 }
