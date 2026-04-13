@@ -1,16 +1,21 @@
 // ── components/ChatModal.js ──
 import { useState, useEffect, useRef } from "react";
-import { sendMessage, subscribeToMessages, getOrCreateConversation } from "../firestore";
+import {
+  sendMessage,
+  subscribeToMessages,
+  getOrCreateConversation,
+  markConversationRead,
+} from "../firestore";
 
 function ChatModal({ booking, currentUser, onClose }) {
   const [messages, setMessages] = useState([]);
-  const [text, setText] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [sending, setSending] = useState(false);
-  const [convId, setConvId] = useState(null);
+  const [text,     setText]     = useState("");
+  const [loading,  setLoading]  = useState(true);
+  const [sending,  setSending]  = useState(false);
+  const [convId,   setConvId]   = useState(null);
   const bottomRef = useRef(null);
 
-  // Δημιουργία/εύρεση conversation και real-time listener
+  // Δημιουργία/εύρεση conversation + real-time listener
   useEffect(() => {
     let unsubscribe = () => {};
     const init = async () => {
@@ -21,6 +26,10 @@ function ChatModal({ booking, currentUser, onClose }) {
         booking.listing || booking.title || "Θέση Parking"
       );
       setConvId(id);
+
+      // Μηδενισμός unread μόλις ανοίξει το chat
+      await markConversationRead(id, currentUser.uid);
+
       setLoading(false);
       unsubscribe = subscribeToMessages(id, (msgs) => {
         setMessages(msgs);
@@ -39,11 +48,18 @@ function ChatModal({ booking, currentUser, onClose }) {
     e.preventDefault();
     if (!text.trim() || !convId || sending) return;
     setSending(true);
+
+    // recipientUid = ο άλλος χρήστης
+    const recipientUid = currentUser.uid === booking.driverUid
+      ? booking.ownerUid
+      : booking.driverUid;
+
     await sendMessage(
       convId,
       currentUser.uid,
       currentUser.displayName || currentUser.email,
-      text.trim()
+      text.trim(),
+      recipientUid,        // ← ΝΕΟ: για unread count
     );
     setText("");
     setSending(false);
@@ -51,9 +67,8 @@ function ChatModal({ booking, currentUser, onClose }) {
 
   const isMe = (msg) => msg.senderUid === currentUser.uid;
 
-  // Όνομα συνομιλητή
   const otherName = currentUser.uid === booking.driverUid
-    ? (booking.owner || "Ιδιοκτήτης")
+    ? (booking.owner  || "Ιδιοκτήτης")
     : (booking.driver || "Οδηγός");
 
   const formatTime = (ts) => {
@@ -63,11 +78,14 @@ function ChatModal({ booking, currentUser, onClose }) {
   };
 
   return (
-    <div style={{
-      position: "fixed", inset: 0, zIndex: 2000,
-      background: "rgba(0,0,0,0.6)",
-      display: "flex", alignItems: "flex-end", justifyContent: "center",
-    }} onClick={(e) => e.target === e.currentTarget && onClose()}>
+    <div
+      style={{
+        position: "fixed", inset: 0, zIndex: 2000,
+        background: "rgba(0,0,0,0.6)",
+        display: "flex", alignItems: "flex-end", justifyContent: "center",
+      }}
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+    >
       <div style={{
         width: "100%", maxWidth: 480,
         height: "75vh",
@@ -78,6 +96,7 @@ function ChatModal({ booking, currentUser, onClose }) {
         boxShadow: "0 -8px 40px rgba(0,0,0,0.4)",
         animation: "slideUp .3s cubic-bezier(.16,1,.3,1)",
       }}>
+
         {/* Header */}
         <div style={{
           padding: "16px 20px",
@@ -139,13 +158,11 @@ function ChatModal({ booking, currentUser, onClose }) {
                   borderRadius: isMe(msg)
                     ? "18px 18px 4px 18px"
                     : "18px 18px 18px 4px",
-                  fontSize: 14,
-                  lineHeight: 1.4,
+                  fontSize: 14, lineHeight: 1.4,
                 }}>
                   <div>{msg.text}</div>
                   <div style={{
-                    fontSize: 10,
-                    marginTop: 4,
+                    fontSize: 10, marginTop: 4,
                     color: isMe(msg) ? "rgba(255,255,255,0.7)" : "var(--text3)",
                     textAlign: "right",
                   }}>{formatTime(msg.createdAt)}</div>
@@ -183,8 +200,7 @@ function ChatModal({ booking, currentUser, onClose }) {
               : "var(--surface2)",
             border: "none", cursor: text.trim() ? "pointer" : "default",
             display: "flex", alignItems: "center", justifyContent: "center",
-            fontSize: 18, transition: "all .2s",
-            flexShrink: 0,
+            fontSize: 18, transition: "all .2s", flexShrink: 0,
           }}>
             {sending ? "⏳" : "➤"}
           </button>
